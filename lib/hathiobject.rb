@@ -1,10 +1,12 @@
 # HathiObject and HathiItem
+require 'csv'
 
 class HathiObject
   attr_reader   :recordnumber
   attr_accessor :items
 
-  def initialize(rnum, items)
+
+  def initialize(rnum, items = [])
     @recordnumber = rnum
     @items = items
   end
@@ -28,13 +30,7 @@ class HathiObject
 end
 
 class HathiItem
-  attr_accessor :owner
-  attr_accessor :vid
-  attr_accessor :itemid
-  attr_accessor :enumcron
-  attr_accessor :year
-  attr_accessor :status
-  attr_accessor :rank
+  attr_accessor :owner, :vid, :itemid, :enumcron, :year, :status, :rank
 
   def initialize(line)
     @owner,@vid, @itemid,@enumcron,@year,@status = line.chomp.split("\t")
@@ -57,10 +53,19 @@ class HathiItem
     when 'yale', 'hvd', 'coo', 'chi'
       @rank = 2
 
-    else
+    when 'mdp', 'miun', 'uc1', 'uc2', 'loc.ark', 'uva', 'umn', 'dul1.ark', 'ien', 'inu', 'nc01.ark', 'pst', 'pur1', 'ucm', 'uiug', 'wu'
       @rank = 1
+
+    else
+      @rank = 0
     end
     @rank
+  end
+end
+
+def to_s
+  CSV.generate(:col_sep => "\t") do |out|
+    out << [@owner,@vid, @itemid,@enumcron,@year,@status]
   end
 end
 
@@ -88,5 +93,13 @@ class HathiDB
     self.oblist.each { |k,v| the_set << self.object(k).choice  }
     the_set
   end
+
+  def write_culled(outfile)
+    culled_set = self.culled
+    File.open(outfile, "w") do |f|
+      culled_set.each { |i| f.puts i }
+    end
+  end
+    
 end
 
