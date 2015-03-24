@@ -50,11 +50,16 @@ class HathiObject
 end
 
 # HathiItem is an object overlay of a spreadsheet row.
-class HathiItem
-  attr_accessor :owner, :vid, :itemid, :enumcron, :year, :status, :rank
 
+class HathiItem
+#  attr_accessor :owner, :vid, :itemid, :enumcron, :year, :status, :rank
+  attr_accessor :qvol, :owner, :vid, :itemid, :unique, :brogan, :ppa, :ss, :vurl, :rurl, :enumcron, :year, :title, :author, :status, :other, :errors, :col16, :rank
+  
   def initialize(line)
-    @owner,@vid, @itemid,@enumcron,@year,@status = line.chomp.split("\t")
+    #    @owner,@vid, @itemid,@enumcron,@year,@status = line.chomp.split("\t")
+    # qvol is the qualified volume id: owner.vid .  It must be split.
+    @qvol, @itemid, @unique, @brogan, @ppa, @ss, @vurl, @rurl, @enumcron, @year, @title, @author, @status, @other, @errors, @col16  = line.chomp.split("\t")
+    @owner,@vid = @qvol.split('.')
     @rank = 0
   end
 
@@ -94,7 +99,7 @@ end
 # way to do this.
 def to_s
   CSV.generate(:col_sep => "\t") do |out|
-    out << [@owner,@vid, @itemid,@enumcron,@year,@status]
+    out << [@qvol, @itemid, @unique, @brogan, @ppa, @ss, @vurl, @rurl, @enumcron, @year, @title, @author, @status, @other, @errors, @rank]
   end
 end
 
@@ -126,11 +131,25 @@ class HathiDB
     the_set
   end
 
+  def ranked
+    ranked_set = []
+    self.itemlist.each { |k,v| ranked_set << self.object(k).sort }
+    ranked_set
+  end
+
   def write_culled(outfile)
     culled_set = self.culled
     File.open(outfile, "w") do |f|
       culled_set.each { |i| f.puts i }
     end
+  end
+
+  def write_ranked(outfile)
+    ranked_set = self.ranked
+    File.open(outfile, "w") do |f|
+      ranked_set.each { |i| f.puts i }
+    end
+
   end
     
 end
