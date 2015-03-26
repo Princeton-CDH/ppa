@@ -40,13 +40,22 @@ class HathiObject
   # all the items: we don't know how to choose among them if there
   # are duplicates.  Otherwise, if the object is not a serial, choose
   # the highest-ranking among the object's items.
-  def choice
+  def chosen
     if self.serial?
       @items
     else
       self.sort.last
     end
   end
+
+  def unchosen
+    if self.serial?
+      []
+    else
+      self.sort.slice(0, items.length - 1)
+    end
+  end
+
 end
 
 # HathiItem is an object overlay of a spreadsheet row.
@@ -63,7 +72,7 @@ class HathiItem
     @rank = 0
   end
 
-  # an item is a serial or edition if it has an enumcron
+  # an item is a serial or edition if it has an enumcron: i.e., the enumcron is not empty
   def serial?
     !@enumcron.empty?
   end
@@ -124,12 +133,20 @@ class HathiDB
     obj
   end
 
-  # The culled set is the chosen item or items from each object.
-  def culled
+  # The chosen set is the chosen item or items from each object.
+  def chosen
     the_set = []
-    self.itemlist.each { |k,v| the_set << self.object(k).choice  }
+    self.itemlist.each { |k,v| the_set << self.object(k).chosen  }
     the_set
   end
+
+  # The unchosen set is the unchosen item or items from each object.
+  def unchosen
+    the_set = []
+    self.itemlist.each { |k,v| the_set << self.object(k).unchosen  }
+    the_set
+  end
+
 
   def ranked
     ranked_set = []
@@ -137,10 +154,17 @@ class HathiDB
     ranked_set
   end
 
-  def write_culled(outfile)
-    culled_set = self.culled
+  def write_chosen(outfile)
+    chosen_set = self.chosen
     File.open(outfile, "w") do |f|
-      culled_set.each { |i| f.puts i }
+      chosen_set.each { |i| f.puts i }
+    end
+  end
+
+  def write_unchosen(outfile)
+    unchosen_set = self.unchosen
+    File.open(outfile, "w") do |f|
+      unchosen_set.each { |i| f.puts i }
     end
   end
 
@@ -149,7 +173,6 @@ class HathiDB
     File.open(outfile, "w") do |f|
       ranked_set.each { |i| f.puts i }
     end
-
   end
     
 end

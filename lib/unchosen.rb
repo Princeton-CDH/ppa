@@ -8,7 +8,7 @@ require 'optparse'
 options = {}
 
 optparse = OptionParser.new do |opts|
-  opts.banner = "Usage: dedup.rb -i INFILE -o OUTFILE"
+  opts.banner = "Usage: unchosen.rb -i INFILE -o OUTFILE"
 
   opts.on( '-i', '--infile FILE', 'Read from FILE' ) do |file|
     options[:infile] = file
@@ -22,5 +22,5 @@ end
 optparse.parse!
 
 db = HathiDB.new(options[:infile])
-db.write_chosen(options[:outfile])
+db.write_unchosen(options[:outfile])
 
