@@ -70,6 +70,7 @@ class HathiItem
     @qvol, @itemid, @unique, @brogan, @ppa, @ss, @vurl, @rurl, @enumcron, @year, @title, @author, @status, @other, @errors, @col16  = line.chomp.split("\t")
     @owner,@vid = @qvol.split('.')
     @rank = 0
+
   end
 
   # an item is a serial or edition if it has an enumcron: i.e., the enumcron is not empty
@@ -107,8 +108,27 @@ end
 # with the column separator set to the tab character is an idiomatic
 # way to do this.
 def to_s
+  
+  f = ""
+  g = ""
+  h = ""
+  p = ""
+  s = ""
+  x = ""
+  
+  categories = []
+  categories = @other.split(',')  if @other
+
+  f = 1 if categories.include? 'F'
+  g = 1 if categories.include? 'G'
+  h = 1 if categories.include? 'H'
+  p = 1 if categories.include? 'P'
+  s = 1 if categories.include? 'S'
+  x = 1 if categories.include? 'X'
+  
   CSV.generate(:col_sep => "\t") do |out|
-    out << [@qvol, @itemid, @unique, @brogan, @ppa, @ss, @vurl, @rurl, @enumcron, @year, @title, @author, @status, @other, @errors, @rank]
+    # split the category field and write them to individual columns
+    out << [@qvol, @itemid, @unique, @brogan, @ppa, @ss, @vurl, @rurl, @enumcron, @year, @title, @author, @status, f,g,h,p,s,x, @errors, @rank]
   end
 end
 
@@ -122,10 +142,12 @@ class HathiDB
   def initialize(source)
     @sourcefile = source
     @itemlist = {}
-    open(@sourcefile).each do |line|
-    item = HathiItem.new(line)
-    (@itemlist[item.itemid] ||= []) << item
+    open(@sourcefile).each_with_index do |line, index|
+      next if index == 0
+      item = HathiItem.new(line)
+      (@itemlist[item.itemid] ||= []) << item
     end
+    @header_row = ["Volume Id", "Record Id", "Graphically / Typographically Unique", "Brogan's English Versification", "Prosody Archive", "Subject Search", "Volume URL", "Record URL", "Enumeration", "Year", "Title", "Author", "Remove (x)/Hide (h)", "F", "G", "H", "P", "S", "X", "Errors", "Column 16"]
   end
 
   def object(id)
