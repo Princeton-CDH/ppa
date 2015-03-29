@@ -117,7 +117,8 @@ def to_s
   x = ""
   
   categories = []
-  categories = @other.split(',')  if @other
+  # get rid of whitespace before sp
+  categories = @other.gsub(/\s+/,'').split(',')  if @other
 
   f = 1 if categories.include? 'F'
   g = 1 if categories.include? 'G'
@@ -138,16 +139,17 @@ end
 class HathiDB
   attr_accessor :itemlist
   attr_accessor :sourcefile
+  attr_accessor :header_row
 
   def initialize(source)
     @sourcefile = source
     @itemlist = {}
+    @header_row = "volid\trecid\tunique\tbrogan\tppa\tss\tvurl\trurl\tenum\tyear\ttitle\tauthor\tcat\tf\tg\th\tp\ts\tx\terrors"
     open(@sourcefile).each_with_index do |line, index|
       next if index == 0
       item = HathiItem.new(line)
       (@itemlist[item.itemid] ||= []) << item
     end
-    @header_row = ["Volume Id", "Record Id", "Graphically / Typographically Unique", "Brogan's English Versification", "Prosody Archive", "Subject Search", "Volume URL", "Record URL", "Enumeration", "Year", "Title", "Author", "Remove (x)/Hide (h)", "F", "G", "H", "P", "S", "X", "Errors", "Column 16"]
   end
 
   def object(id)
@@ -193,6 +195,7 @@ class HathiDB
   def write_ranked(outfile)
     ranked_set = self.ranked
     File.open(outfile, "w") do |f|
+      f.puts self.header_row
       ranked_set.each { |i| f.puts i }
     end
   end
