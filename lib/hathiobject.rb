@@ -181,6 +181,7 @@ class HathiDB
   def write_chosen(outfile)
     chosen_set = self.chosen
     File.open(outfile, "w") do |f|
+      f.puts self.header_row
       chosen_set.each { |i| f.puts i }
     end
   end
@@ -188,6 +189,7 @@ class HathiDB
   def write_unchosen(outfile)
     unchosen_set = self.unchosen
     File.open(outfile, "w") do |f|
+      f.puts self.header_row
       unchosen_set.each { |i| f.puts i }
     end
   end
